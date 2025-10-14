@@ -1,0 +1,64 @@
+name: SWE-bench Gold Patch Evaluation
+
+on:
+    workflow_dispatch:
+
+jobs:
+    eval:
+        runs-on: ubuntu-latest
+        timeout-minutes: 90
+        defaults:
+            run:
+                shell: bash -l {0}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.11"
+
+            - name: Install uv
+              run: |
+                  curl -LsSf https://astral.sh/uv/install.sh | sh
+
+            - name: Install SWE-bench
+              run: |
+                  uv pip install --python ${Python_ROOT_DIR} '.'
+
+            - name: Check Docker
+              run: docker version
+
+            - name: Run evaluation (gold)
+              run: |
+                  mkdir -p logs
+                  python -m swebench.harness.run_evaluation \
+                    --dataset_name data/tasks/to_be_evaluated.jsonl \
+                    --predictions_path gold \
+                    --max_workers 1 \
+                    --run_id evaluation_run \
+                    --timeout 1800 \
+                    --namespace none \
+                    --force_rebuild true \
+                    --clean true
+
+            - name: Preview evaluation results
+              run: |
+                  echo "## 📊 Evaluation Results" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  if [ -f gold.evaluation_run.json ]; then
+                    echo "\`\`\`json" >> $GITHUB_STEP_SUMMARY
+                    cat gold.evaluation_run.json >> $GITHUB_STEP_SUMMARY
+                    echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+                  else
+                    echo "⚠️ gold.evaluation_run.json not found" >> $GITHUB_STEP_SUMMARY
+                  fi
+
+            - name: Upload logs
+              uses: actions/upload-artifact@v4
+              with:
+                  name: swebench-logs
+                  path: |
+                      logs/
+                      gold.evaluation_run.json/
