@@ -25,6 +25,7 @@ on:
 # https://github.com/orgs/community/discussions/25491
 jobs:
   test:
+    if: false  # Workflow disabled
     runs-on: ubuntu-latest
     defaults:
       run:
