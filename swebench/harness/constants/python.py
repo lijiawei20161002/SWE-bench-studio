@@ -44,6 +44,27 @@ SPECS_SKLEARN.update(
     }
 )
 
+SPECS_BROWSER_USE = {
+      k: {
+          "python": "3.12",
+          "install": "uv sync --dev --all-extras && uvx playwright install chromium --with-deps --no-shell",
+          "pip_packages": ["uv"],
+          "test_cmd": "uv run pytest -rA",
+      }
+      for k in ["0.5.9"]
+  }
+# Add configuration for version 0.1.46 (PR #1570)
+SPECS_BROWSER_USE.update(
+    {
+        "0.1.46": {
+            "python": "3.11",
+            "install": "uv sync --dev && uv run patchright install chrome",
+            "pip_packages": ["uv"],
+            "test_cmd": "uv run pytest -rA",
+        }
+    }
+)
+
 SPECS_FLASK = {
     "2.0": {
         "python": "3.9",
